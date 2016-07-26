@@ -1,0 +1,19 @@
+Package: mvGoF
+Title: Assessing a multivariate goodness of fit
+Version: 0.0.0.9000
+Authors@R: person("Andreas", "Maendle", email = "andreas.maendle@uni-oldenburg.de", role = c("aut", "cre"))
+Description: Functions for the computation of several goodness of fit
+    statistics. Currently impemented are multivariate versions of well known
+    EDF statistics: The Anderson-Darling and Cramer-von Mises statistics for
+    multivariate uniformly(0,1) distributed data and the bivariate Kolmogorov-
+    Smirnov statistic for (0,1) distributed data. Further Rosenblatt's
+    transformation for multivariate normally distributed data is implemented, such
+    that these tests can be applied as a test for normality.
+Depends:
+    R (>= 3.3.0)
+Imports:
+    copula, MASS
+License: GPL-3.0
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 5.0.1
