@@ -23,7 +23,7 @@ plot(u)
 CvM.stat(u)
 #[1] 0.1061887
 
-x <- mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
+x <- MASS::mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
 plot(x)
 u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 plot(u)
@@ -38,7 +38,7 @@ CvM.stat(u)
  \item{Chiu, S.N. and K.I. Liu. Generalized Cramér--von Mises goodness-of-fit tests for multivariate distributions. Computational Statistics & Data Analysis, 53(11):3817-3834, 2009.}
 }
 
-Other "test statistics": \code{\link{AD.stat}},
-  \code{\link{biKS.stat}}
+Other X.test.statistics.: \code{\link{AD.stat}},
+  \code{\link{KSa.stat}}, \code{\link{biKS.stat}}
 }
 

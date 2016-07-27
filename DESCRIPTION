@@ -13,6 +13,8 @@ Depends:
     R (>= 3.3.0)
 Imports:
     copula, MASS
+Suggests:
+    gumbel
 License: GPL-3.0
 Encoding: UTF-8
 LazyData: true

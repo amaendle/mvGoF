@@ -23,12 +23,11 @@
 #' quantile(sims)
 #' # critival value for sample size 48 and alpha=0.05
 #' KS.cval(48,0.05)
-#' KS.cval(10)
-#' 
+#'
 #' # for the Lilliefors statistic:
 #' n <- 10 # e.g. sample size 10
 #' set.seed(14072016)
-#' sims <- stat.MC(n,100,biKS.stat) # 100 MC simulations (usually larger) 
+#' sims <- stat.MC(n,100,biKS.stat) # 100 MC simulations (usually larger)
 #'
 #' #evaluate empirical power of statistics
 #' #set parameters of true distribution
@@ -44,27 +43,33 @@
 #' tmp.CvM.n15.sims <- rep(NA, nMC)
 #' set.seed(15072016)
 #' for (i in 1:nMC) {
-#'   rbts <- rosenblatt.norm(du  ((1-eps)*mvrnorm(n, mu0, Sigma0) + eps*mvrnorm(n, mu, Sigma0))  ,mu0,Sigma0)
+#'   rbts <- rosenblatt.norm( ((1-eps)*MASS::mvrnorm(n, mu0, Sigma0) + eps*MASS::mvrnorm(n, mu, Sigma0))  ,mu0,Sigma0)
 #'   tmp.KS.n15.sims[i] <- biKS.stat( rbts  )
 #'   tmp.AD.n15.sims[i] <- AD.stat( rbts  )
 #'   tmp.CvM.n15.sims[i] <- CvM.stat( rbts  )
 #' }
-#' length(t1.KS.n15.sims[t1.KS.n15.sims>KS.cval(15,0.05)])/length(t1.KS.n15.sims)
-#' length(t2.KS.n15.sims[t2.KS.n15.sims>KS.cval(15,0.05)])/length(t2.KS.n15.sims)
-#' length(t3.KS.n15.sims[t3.KS.n15.sims>KS.cval(15,0.05)])/length(t3.KS.n15.sims)
-#' t1: mu <- c(3,3), eps <- 0.1 
-#' t2: mu <- c(3,3), eps <- 0.2 
-#' t3: mu <- c(3,3), eps <- 0.4 
+#' #length(t1.KS.n15.sims[t1.KS.n15.sims>KS.cval(15,0.05)])/length(t1.KS.n15.sims)
+#' #length(t2.KS.n15.sims[t2.KS.n15.sims>KS.cval(15,0.05)])/length(t2.KS.n15.sims)
+#' #length(t3.KS.n15.sims[t3.KS.n15.sims>KS.cval(15,0.05)])/length(t3.KS.n15.sims)
+#' #t1: mu <- c(3,3), eps <- 0.1
+#' #t2: mu <- c(3,3), eps <- 0.2
+#' #t3: mu <- c(3,3), eps <- 0.4
+#'
 NULL
 
-#' Compute Monte-Carlo simulations of test statistick
+#' Compute Monte-Carlo simulations of test statistic \code{func}
 #'
 #' \code{stat.MC} returns the simulated values of function \code{func}.
 #'
-#'  @examples
+#' @param n Sample size.
+#' @param rp Number of Monte Carlo simulations.
+#' @param func Function which evaluates the test statistic.
+#'
+#' @examples
 #' KS.n12test.sims <- stat.MC(12,100,biKS.stat)
 #' # now quantiles can be estimated
-#' quantile(KS.n12.sims,probs=(1-alphas))
+#' quantile(KS.n12test.sims,probs=(1-c(0.01,0.05,0.1,0.25)))
+#' @export
 stat.MC <- function(n,rp,func) {
   # Evaluate percentiles of the distribution by Monte-Carlo simulation
   # sampling from independent uniforms 0-1 for F_0 specified completely by H_0
@@ -88,27 +93,27 @@ stat.MC.clust <- function(n,rp,func){
     rb.array[i,,] <- matrix(runif(2*n), n, 2, dimnames = list(c(1:n),c("X", "Y")))
   }
   #apply(rb.array[1:10,,],c(1),biKS.stat)
-  
+
   stopCluster(cl)
   cl <- makeCluster(15, outfile="")
   registerDoParallel(cl)
   getDoParWorkers()
   tmp = foreach(i = 1:rp, .packages = c("np","MASS","copula","fBasics","doParallel","foreach"), .combine = rbind) %dopar% {
     #print(i)
-    return(c(i,biKS.stat(rb.array[i,,]))) 
+    return(c(i,biKS.stat(rb.array[i,,])))
   }  ; return(tmp);
 }
 
 #Lilliefors
 stat.MC.Lilliefors <- function(n,rp,func) {
-  library(mclust)
+  ##library(mclust)
   # Evaluate percentiles of the distribution by Monte-Carlo simulation
   # sampling from .. for F_0 specified completely by H_0
-  sims <- rep(NA,rp) 
+  sims <- rep(NA,rp)
   # set.seed(14072016)
   #system.time(
   for (i in 1:rp) {
-    mvns <- mvrnorm(n,rep(0,2),diag(1,2))
+    mvns <- MASS::mvrnorm(n,rep(0,2),diag(1,2))
     tmpfit <- mvn(modelName="Ellipsoidal",mvns)
     (tmpmu<-tmpfit$parameters$mean)
     (tmpSigma<-tmpfit$parameters$variance$Sigma)
@@ -118,6 +123,16 @@ stat.MC.Lilliefors <- function(n,rp,func) {
   return(sims)
 }
 
+#' Quantiles of the Kolmogorov–Smirnov test
+#'
+#' \code{KS.quantiles} returns quantiles for the Kolmogorov–Smirnov test.
+#'
+#' @param alphas Alpha levels for which the quantiles should be returned.
+#'
+#' @examples
+#' x <- matrix(rnorm(50), nrow=25, ncol=2)
+#' @seealso \code{\link[copula]{rtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
+#' @export
 KS.quantiles <- function(alphas=c(0.25,0.2,0.15,0.1,0.05,0.025,0.01,0.005,0.0025,0.001)){
   n<-c(10,11,12,13,14,15,20,25,30,40,50,60,80,100,150,200,300)
   return(cbind(n,rbind(
@@ -139,6 +154,16 @@ KS.quantiles <- function(alphas=c(0.25,0.2,0.15,0.1,0.05,0.025,0.01,0.005,0.0025
     quantile(KS.n200.sims,probs=(1-alphas)),
     quantile(KS.n300.sims,probs=(1-alphas)) )))
 }
+#' Quantiles of the Anderson-Darling test
+#'
+#' \code{KS.quantiles} returns quantiles for the Anderson-Darling test.
+#'
+#' @param alphas Alpha levels for which the quantiles should be returned.
+#'
+#' @examples
+#' x <- matrix(rnorm(50), nrow=25, ncol=2)
+#' @seealso \code{\link[copula]{rtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
+#' @export
 AD.quantiles <- function(alphas=c(0.25,0.2,0.15,0.1,0.05,0.025,0.01,0.005,0.0025,0.001)){
   n<-c(10,11,12,13,14,15,20,25,30,40,50,60,80,100,150,200,300)
   return(cbind(n,rbind(
@@ -160,6 +185,16 @@ AD.quantiles <- function(alphas=c(0.25,0.2,0.15,0.1,0.05,0.025,0.01,0.005,0.0025
     quantile(AD.n200.sims,probs=(1-alphas)),
     quantile(AD.n300.sims,probs=(1-alphas)) )))
 }
+#' Quantiles of the Cramér-von Mises test
+#'
+#' \code{KS.quantiles} returns quantiles for the Cramér-von Mises test.
+#'
+#' @param alphas Alpha levels for which the quantiles should be returned.
+#'
+#' @examples
+#' x <- matrix(rnorm(50), nrow=25, ncol=2)
+#' @seealso \code{\link[copula]{rtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
+#' @export
 CvM.quantiles <- function(alphas=c(0.25,0.2,0.15,0.1,0.05,0.025,0.01,0.005,0.0025,0.001)){
   n<-c(10,11,12,13,14,15,20,25,30,40,50,60,80,100,150,200,300)
   return(cbind(n,rbind(
@@ -200,12 +235,33 @@ KSL.quantiles <- function(alphas=c(0.25,0.2,0.15,0.1,0.05,0.025,0.01,0.005,0.002
     # quantile(KS.n100.sims,probs=(1-alphas)),
     # quantile(KS.n150.sims,probs=(1-alphas)),
     # quantile(KS.n200.sims,probs=(1-alphas)),
-    # quantile(KS.n300.sims,probs=(1-alphas)) 
+    # quantile(KS.n300.sims,probs=(1-alphas))
     )))
 }
 
+#' Compute critical value for the Kolmogorov–Smirnov test
+#'
+#' \code{KS.cval} returns the critical values of for the Kolmogorov–Smirnov test statistic.
+#'
+#' @param n Sample size.
+#' @param prob Quantile.
+#' @export
 KS.cval <- function(n,prob) {stat.cval(n,prob,KS.quantiles)}
+#' Compute critical value for the Anderson-Darling test
+#'
+#' \code{KS.cval} returns the critical values of for the Anderson-Darling test statistic.
+#'
+#' @param n Sample size.
+#' @param prob Quantile.
+#' @export
 AD.cval <- function(n,prob) {stat.cval(n,prob,AD.quantiles)}
+#' Compute critical value for the Cramér-von Mises test
+#'
+#' \code{KS.cval} returns the critical values of for the Cramér-von Mises test statistic.
+#'
+#' @param n Sample size.
+#' @param prob Quantile.
+#' @export
 CvM.cval <- function(n,prob) {stat.cval(n,prob,CvM.quantiles)}
 
 stat.cval <- function(n,prob,qfun){
@@ -237,8 +293,8 @@ stat.cval <- function(n,prob,qfun){
 KS.pval <- function(x,n){
   optfun <- function(p) {return(abs(KS.cval(n,p)-x))}
   p<-optim(par=0.43, optfun, method="Brent",lower=0,upper=1)$par
- # if (p>=0.99) {warning("p-value larger than 0.99")} 
- # if (p<=0.01) {warning("p-value smaller than 0.01")} 
+ # if (p>=0.99) {warning("p-value larger than 0.99")}
+ # if (p<=0.01) {warning("p-value smaller than 0.01")}
   return(p)
 }
 AD.pval <- function(x,n){
@@ -266,7 +322,7 @@ CvM.pval <- function(x,n){
 #' CvM.stat(u)
 #' #[1] 0.1061887
 #'
-#' x <- mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
+#' x <- MASS::mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
 #' plot(x)
 #' u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 #' plot(u)
@@ -342,7 +398,7 @@ biKS.isecpts <- function(dat) {
 #' biKS.stat(u)
 #' #[1] 0.252292
 #'
-#' x <- mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
+#' x <- MASS::mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
 #' plot(x)
 #' u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 #' plot(u)
@@ -388,7 +444,7 @@ biKS.stat <- function(u) {
 #'
 #' \code{KSa.stat} returns the value of the approximative Kolmogorov-Smirnov test statistic
 #'
-#' The statistic used by this function \eqn{D_n^*} from 
+#' The statistic used by this function \eqn{D_n^*} from
 #' Justel, A.; Peña, D.; Zamar, R. (1997). "A multivariate Kolmogorov–Smirnov test of goodness of fit". Statistics & Probability Letters 35 (3): 251–259. doi:10.1016/S0167-7152(97)00020-5.
 #' as an approximation of the Kolmogorov-Smirnov test statistic.
 #'
@@ -402,7 +458,7 @@ biKS.stat <- function(u) {
 #' KSa.stat(u)
 #' #[1] 0.252292
 #'
-#' x <- mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
+#' x <- MASS::mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
 #' plot(x)
 #' u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 #' plot(u)
@@ -424,7 +480,7 @@ biKS.stat <- function(u) {
 KSa.stat <- function(u) {
   n <- dim(u)[1]
   s <- dim(u)[2]
-  
+
   # according to justel pena zamar:
   # (1) compute the maximum distance in the  observed points, D_n^1 = max D_n^+(u_i)
   dn1 <- max(apply(u,1,biKS.supdist,dat=u))
@@ -495,33 +551,13 @@ Heaviside1 <- function(x) {
   else return(1)
 }
 
-# > ADStat(rbdata,1e3)
-# [1] 1.390859
-# > system.time(ADStat(rbdata,1e3))
-# user  system elapsed
-# 6.472   0.004   6.473
-# mult5KS(rbdata)
-
-# require("devtools")
-# require("roxygen2")
-#roxygen2::roxygenise(pkg="../bigof")
-# setwd("./mvGoF")
-# document()
-# setwd("..")
-# install("mvGoF")
-# require("mvGoF")
-# howto: https://hilaryparker.com/2014/04/29/writing-an-r-package-from-scratch/
-#install_github('cats','github_username')
-#http://r-pkgs.had.co.nz/man.html
-#https://cran.r-project.org/web/packages/roxygen2/vignettes/rd.html
-#
 
 ### now content of mADpack.R follows
 
 #aus Markov ADessohneskript.R
 
-library(copula)
-library(MASS)
+#library(copula)
+#library(MASS)
 # library("parallel")
 # library("foreach")
 # library("doParallel")
@@ -551,7 +587,11 @@ library(MASS)
 
 #' Rosenblatt's transformation for normally distributed data
 #'
-#' \code{rosenblatt.norm} returns Rosenblatt's transformation of a normally distributed vector \code{x} with mean vector \code{Mu} and correlation matrix \code{Sigma}.
+#' \code{rosenblatt.norm} returns Rosenblatt's transformation of normally distributed vectors which are the lines of the array \code{x}, with mean vector \code{Mu} and correlation matrix \code{Sigma}.
+#'
+#' @param x Array containing the data which have to be transformed. Each line represents a data vector with the coloumn number as dimension.
+#' @param Mu Mean vector.
+#' @param Sigma Correlation matrix.
 #'
 #' @examples
 #' x <- matrix(rnorm(50), nrow=25, ncol=2)
@@ -559,7 +599,7 @@ library(MASS)
 #' u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 #' plot(u)
 #'
-#' x <- mvrnorm(n = 500, rep(0, 2), diag(1,2,2))
+#' x <- MASS::mvrnorm(n = 500, rep(0, 2), diag(1,2,2))
 #' plot(x)
 #' u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 #' plot(u)
@@ -574,7 +614,7 @@ library(MASS)
 #' pairs(ndata)
 #' rbdata <- rosenblatt.norm(ndata, rep(0,5),sigma2)
 #' pairs(rbdata)
-#' @seealso \code{\link[copula]{gtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
+#' @seealso \code{\link[copula]{rtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
 #' @export
 rosenblatt.norm <- function(x, Mu, Sigma) {
   if (class(x)=="numeric"){
@@ -583,7 +623,7 @@ rosenblatt.norm <- function(x, Mu, Sigma) {
   d <- dim(x)[2]
   n <- dim(x)[1]
   u <- matrix(NaN,dim(x)[1],dim(x)[2])
-  
+
   ### case k <- 1 ###
   ### marginal distribution ###
   k <- 1
@@ -591,7 +631,7 @@ rosenblatt.norm <- function(x, Mu, Sigma) {
   sigma1 <- Sigma[k,k]
   tempfun <- function(x)  { pnorm(x, mean = mu1, sd = sqrt(sigma1), lower.tail = TRUE, log.p = FALSE) }    #!!!!!!!!
   u[,k] <- sapply( x[,k] , tempfun )
-  
+
   #print(x)
   for (k in 2:d) {
     # make x matrix
@@ -604,7 +644,7 @@ rosenblatt.norm <- function(x, Mu, Sigma) {
     tSigma11I <- solve(tSigma11)  # inverse matrix
     muk <- NULL
     sigmak <- NULL
-    
+
     muk <- tMu2[1]%*%matrix(1,1,n) + (tSigma21[1,] %*% tSigma11I) %*% (t(x[,1:(k-1)]) - tMu1%*%matrix(1,1,n))
     #  sigmak <- tSigma22 - (tSigma21 %*% tSigma11I %*% tSigma12)
     sigmak <- tSigma22[1,1] - (tSigma21[1,] %*% tSigma11I %*% tSigma12[,1])
@@ -765,7 +805,7 @@ buildADStat <- function(c1, c2, n, dim,nsum) {
 #' plot(x)
 #' AD.stat(x)
 #'
-#' x <- mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
+#' x <- MASS::mvrnorm(n = 200, rep(0, 2), diag(1,2,2))
 #' plot(x)
 #' u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 #' plot(u)
@@ -840,18 +880,18 @@ simNTmc <- function(n,MuF,SigmaF,k,Mu,Sigma,l,nsum) {
   SumSim = foreach(i = 1:k, .packages = c("MASS","copula","fBasics"), .combine = c) %dopar% {
     # print("Runde")
     # print(i)
-    dataSim <- mvrnorm(n=n, MuF, SigmaF)
+    dataSim <- MASS::mvrnorm(n=n, MuF, SigmaF)
     dataRoseSim <-rosenblatt.norm(dataSim,MuF,SigmaF)
     return(summand12nuevo(dataRoseSim, nsum))  ###########!!!!!!!
   }
   print(SumSim)
   print(quantile(SumSim, probs = seq(0.95, 1, 0.05)))
   ## fehlspezifiziert
-  
+
   SumSimST = foreach(i = 1:l, .packages = c("MASS","copula","fBasics"), .combine = c) %dopar% {
     # print("Runde")
     # print(i)
-    dataSimST <- mvrnorm(n=n, Mu, Sigma)
+    dataSimST <- MASS::mvrnorm(n=n, Mu, Sigma)
     dataRoseSimST <-rosenblatt.norm(dataSimST,MuF,SigmaF)
     return(summand12nuevo(dataRoseSimST, nsum))
   }
@@ -864,15 +904,15 @@ simNTmc <- function(n,MuF,SigmaF,k,Mu,Sigma,l,nsum) {
 
 simNTmc2 <- function(n,MuF,SigmaF,k,Mu,Sigma,l,nsum) {
   SumSim = foreach(i = 1:k, .packages = c("MASS","copula","fBasics"), .combine = c) %dopar% {
-    dataSim <- mvrnorm(n=n, MuF, SigmaF)
+    dataSim <- MASS::mvrnorm(n=n, MuF, SigmaF)
     dataRoseSim <-rosenblatt.norm(dataSim,MuF,SigmaF)
     return(summand2tails(dataRoseSim, nsum))  ############!!!!!!!!!!!!
   }
   print(SumSim)
   print(quantile(SumSim, probs = seq(0.95, 1, 0.05)))
-  
+
   SumSimST = foreach(i = 1:l, .packages = c("MASS","copula","fBasics"), .combine = c) %dopar% {
-    dataSimST <- mvrnorm(n=n, Mu, Sigma)
+    dataSimST <- MASS::mvrnorm(n=n, Mu, Sigma)
     dataRoseSimST <-rosenblatt.norm(dataSimST,MuF,SigmaF)
     return(summand2tails(dataRoseSimST, nsum)) ###############!!!!!!!!
   }
@@ -916,7 +956,7 @@ cvalMC <- function(n,dim,k,nsum) {
 # musim <- rep(0,d)
 # sigmasim <- diag(1,d)
 # cvaluesADn103d7c3 = foreach(i = 1:sims, .packages = c("MASS","copula","fBasics","mclust"), .combine = c) %dopar% {
-#   tmpsim <- mvrnorm(130,musim ,sigmasim )
+#   tmpsim <- MASS::mvrnorm(130,musim ,sigmasim )
 #   tmpfit <- mvn(modelName = "Ellipsoidal", tmpsim)
 #   tmpmu <- tmpfit$parameters$mean
 #   tmpsigma <- tmpfit$parameters$variance$Sigma
@@ -951,7 +991,7 @@ cvalMC <- function(n,dim,k,nsum) {
 # # not dist free??
 # cvalMCndf <- function(n,MuF,SigmaF,k,nsum) {
 #   SumSim = foreach(i = 1:k, .packages = c("MASS","copula","fBasics"), .combine = c) %dopar% {
-#     dataSim <- mvrnorm(n=n, MuF, SigmaF)
+#     dataSim <- MASS::mvrnorm(n=n, MuF, SigmaF)
 #     dataRoseSim <-rosenblatt.norm(dataSim,MuF,SigmaF)
 #     return(summand12nuevo(dataRoseSim, nsum))
 #   }

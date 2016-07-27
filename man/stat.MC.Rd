@@ -2,23 +2,23 @@
 % Please edit documentation in R/mvGOV.R
 \name{stat.MC}
 \alias{stat.MC}
-\title{Compute Monte-Carlo simulations of test statistic}
+\title{Compute Monte-Carlo simulations of test statistic \code{func}}
 \usage{
 stat.MC(n, rp, func)
+}
+\arguments{
+\item{n}{Sample size.}
+
+\item{rp}{Number of Monte Carlo simulations.}
+
+\item{func}{Function which evaluates the test statistic.}
 }
 \description{
 \code{stat.MC} returns the simulated values of function \code{func}.
 }
-\details{
-@examples
-#KS.ntest.sims <- stat.MC(10,10,biKS.stat)
-
-system.time(KS.n40.sims.1000plus <- stat.MC(40,9000,biKS.stat,start1000))
-#save(".Random.seed",file="random_state_seed50.RData") ## save current state
-
-quantile(KS.n12.sims,probs=(1-alphas))
-devtools::use_data(KS.n100.sims, KS.n150.sims) 
-save(".Random.seed",file="random_state_seed1001.RData") ## save current state
-load("random_state_seed10e2.RData") ## restore state just after set.seed()
+\examples{
+KS.n12test.sims <- stat.MC(12,100,biKS.stat)
+# now quantiles can be estimated
+quantile(KS.n12test.sims,probs=(1-c(0.01,0.05,0.1,0.25)))
 }
 

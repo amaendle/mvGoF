@@ -6,13 +6,13 @@
 \alias{mvGoF-package}
 \title{mvGoF: A package for computating several multivariate EDF goodness of fit statistics.}
 \description{
-Multivariate versions of the popular EDF statistics by \emph{Cramér-von Mises}, \emph{Anderson-Darling} and \emph{Kolmogorov-Smirnov} are supported.
+Multivariate versions of the popular EDF statistics by \emph{Cramr-von Mises}, \emph{Anderson-Darling} and \emph{Kolmogorov-Smirnov} are supported.
 }
 \section{List of public functions}{
 
 \itemize{
  \item{"\code{\link{AD.stat}}"}{ Anderson-Darling}
- \item{"\code{\link{CvM.stat}}"}{ Cramér-von Mises}
+ \item{"\code{\link{CvM.stat}}"}{ Cramr-von Mises}
  \item{"\code{\link{biKS.stat}}"}{ bivariate Kolmogorov-Smirnov}
  \item{"\code{\link{rosenblatt.norm}}"}{ Rosenblatt's transformation for normally distributed data}
 }
@@ -20,60 +20,44 @@ Multivariate versions of the popular EDF statistics by \emph{Cramér-von Mises},
 \examples{
 # Evaluate percentiles of the distribution by Monte-Carlo simulation
 # sampling from independent uniforms 0-1 for F_0 specified completely by H_0
-ns <- c(10:15,20,25,30,40,50,60,80,100,150,200,300)
-alphas <- c(0.25,0.2,0.15,0.1,0.05,0.025,0.01,0.005,0.0025,0.001)
-rp <- 100 #replications, usually a larger number,e.g. 10000
-n < - 10
-KS.n10.sims <- rep(NA,rp) #matrix(NA, 10, 2, dimnames = list(c(1:10),c("X", "Y"))) #
-AD.n10.perm1.sims <- rep(NA,rp)
-CvM.n10.sims <- rep(NA,rp)
+n <- 10 # e.g. sample size 10
 set.seed(14072016)
-for (i in 1:rp) {
-  rbts <- matrix(runif(2*n), n, 2, dimnames = list(c(1:n),c("X", "Y")))
-  KS.n10.sims[i] <- biKS.stat( rbts  )
-  AD.n10.sims[i] <- AD.stat( rbts  )
-  CvM.n10.sims[i] <- CvM.stat( rbts  )
-}
-quantile(KS.n10.sims,probs=(1-alphas))
-quantile(AD.n10.sims,probs=(1-alphas))
-quantile(CvM.n10.sims,probs=(1-alphas))
+sims <- stat.MC(n,100,biKS.stat) # 100 MC simulations (usually larger)
+# now quantiles can be estimated
+quantile(sims)
+# critival value for sample size 48 and alpha=0.05
+KS.cval(48,0.05)
 
-# evaluate critical values
-n <- 15 # for a rather small sample size
-btnr <-500 # nr of iterations
-# generate data
-mu0 <- rep(0,2)
-Sigma0 <- diag(0.5,2,2)+matrix(0.5,2,2)
-stats.KS.n15.cv <- rep(NA, btnr)
-stats.AD.n15.cv <- rep(NA, btnr)
-stats.CvM.n15.cv <- rep(NA, btnr)
-for (i in 1:length(stats)) {
-  rbts <- rosenblatt.norm(  mvrnorm(n, mu0, Sigma0)  ,mu0,Sigma0)
+# for the Lilliefors statistic:
+n <- 10 # e.g. sample size 10
+set.seed(14072016)
+sims <- stat.MC(n,100,biKS.stat) # 100 MC simulations (usually larger)
 
-  stats.KS.n15.cv[i] <- biKS.stat( rbts  )
-  stats.AD.n15.cv[i] <- AD.stat( rbts  )
-  stats.CvM.n15.cv[i] <- CvM.stat( rbts  )
-}
-# Pearson-Anpassung
-library("PearsonDS")
-biz0ppar <- pearsonFitML(stats)
-# kritische Werte nach emp. Quantil bzw. Pearson
-quantile(stats,probs=0.95)
-qpearson(p=0.95,params=biz0ppar)
-
-#evaluate power of statistics
+#evaluate empirical power of statistics
+#set parameters of true distribution
+(mu0 <- rep(0,2))
+(Sigma0 <- diag(0.5,2,2)+matrix(0.5,2,2))
 #set parameters for alternative distribution
-eps <- 0.1 #c(0.1,0.2,0.4)
-mu <- c(3,3)
-t1.KS.n15.sims <- rep(NA, btnr)
-t1.AD.n15.sims <- rep(NA, btnr)
-t1.CvM.n15.sims <- rep(NA, btnr)
-for (i in 1:btnr) {
-  rbts <- rosenblatt.norm(  ((1-eps)*mvrnorm(n, mu0, Sigma0) + eps*mvrnorm(n, mu, Sigma0))  ,mu0,Sigma0)
-  t1.KS.n15.sims[i] <- biKS.stat( rbts  )
-  t1.AD.n15.sims[i] <- AD.stat( rbts  )
-  t1.CvM.n15.sims[i] <- CvM.stat( rbts  )
+nMC <- 1000 # number of MC simulations
+n <- 15 # sample size
+eps <- 0.4 #c(0.1,0.2,0.4)
+mu <- c(3,3) #mu <- c(3,-1)
+tmp.KS.n15.sims <- rep(NA, nMC)
+tmp.AD.n15.sims <- rep(NA, nMC)
+tmp.CvM.n15.sims <- rep(NA, nMC)
+set.seed(15072016)
+for (i in 1:nMC) {
+  rbts <- rosenblatt.norm( ((1-eps)*MASS::mvrnorm(n, mu0, Sigma0) + eps*MASS::mvrnorm(n, mu, Sigma0))  ,mu0,Sigma0)
+  tmp.KS.n15.sims[i] <- biKS.stat( rbts  )
+  tmp.AD.n15.sims[i] <- AD.stat( rbts  )
+  tmp.CvM.n15.sims[i] <- CvM.stat( rbts  )
 }
-length(stats.t1[stats.t1>quantile(stats,probs=0.95)])/length(stats.t1)
+#length(t1.KS.n15.sims[t1.KS.n15.sims>KS.cval(15,0.05)])/length(t1.KS.n15.sims)
+#length(t2.KS.n15.sims[t2.KS.n15.sims>KS.cval(15,0.05)])/length(t2.KS.n15.sims)
+#length(t3.KS.n15.sims[t3.KS.n15.sims>KS.cval(15,0.05)])/length(t3.KS.n15.sims)
+#t1: mu <- c(3,3), eps <- 0.1
+#t2: mu <- c(3,3), eps <- 0.2
+#t3: mu <- c(3,3), eps <- 0.4
+
 }
 
