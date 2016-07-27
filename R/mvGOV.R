@@ -511,6 +511,7 @@ Heaviside1 <- function(x) {
 # install("mvGoF")
 # require("mvGoF")
 # howto: https://hilaryparker.com/2014/04/29/writing-an-r-package-from-scratch/
+#install_github('cats','github_username')
 #http://r-pkgs.had.co.nz/man.html
 #https://cran.r-project.org/web/packages/roxygen2/vignettes/rd.html
 #
