@@ -617,7 +617,7 @@ Heaviside1 <- function(x) {
 #' @seealso \code{\link[copula]{rtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
 #' @export
 rosenblatt.norm <- function(x, Mu, Sigma) {
-  if (class(x)=="numeric"){
+  if ("numeric" %in% class(x)){
     x <- matrix(x,1,length(x))
   }
   d <- dim(x)[2]
