@@ -43,7 +43,9 @@ biKS.stat(u)
  \item{Chiu, S.N. and K.I. Liu. Generalized Cramér--von Mises goodness-of-fit tests for multivariate distributions. Computational Statistics & Data Analysis, 53(11):3817-3834, 2009.}
 }
 
-Other X.test.statistics.: \code{\link{AD.stat}},
-  \code{\link{CvM.stat}}, \code{\link{KSa.stat}}
+Other "test statistics": 
+\code{\link{AD.stat}()},
+\code{\link{CvM.stat}()},
+\code{\link{KSa.stat}()}
 }
-
+\concept{"test statistics"}

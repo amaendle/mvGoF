@@ -14,4 +14,3 @@ KS.cval(n, prob)
 \description{
 \code{KS.cval} returns the critical values of for the Kolmogorov–Smirnov test statistic.
 }
-

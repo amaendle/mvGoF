@@ -21,4 +21,3 @@ KS.n12test.sims <- stat.MC(12,100,biKS.stat)
 # now quantiles can be estimated
 quantile(KS.n12test.sims,probs=(1-c(0.01,0.05,0.1,0.25)))
 }
-

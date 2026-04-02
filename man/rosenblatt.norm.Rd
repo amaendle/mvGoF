@@ -27,18 +27,26 @@ plot(x)
 u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 plot(u)
 
-set.seed(5)
-library("gumbel")
-gdata <- qlnorm(rgumbel(12,alpha=2,dim=5))
-pairs(gdata)
-sigma2 <- matrix((1/sqrt(2)),nrow=5,ncol=5)-diag(((1/sqrt(2))-1),5)
-sigma2
-ndata <- qnorm(plnorm(gdata))
-pairs(ndata)
-rbdata <- rosenblatt.norm(ndata, rep(0,5),sigma2)
-pairs(rbdata)
+# this example requires the gumbel package:
+if (requireNamespace("gumbel", quietly = TRUE)) {
+  set.seed(5)
+
+  library("gumbel")
+  gdata <- qlnorm(rgumbel(12,alpha=2,dim=5))
+  pairs(gdata)
+
+  sigma2 <- matrix((1/sqrt(2)),nrow=5,ncol=5)-diag(((1/sqrt(2))-1),5)
+  sigma2
+
+  ndata <- qnorm(plnorm(gdata))
+  pairs(ndata)
+
+  rbdata <- rosenblatt.norm(ndata, rep(0,5),sigma2)
+  pairs(rbdata)
+
+  AD.stat(rbdata)
+}
 }
 \seealso{
 \code{\link[copula]{rtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
 }
-

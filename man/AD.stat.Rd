@@ -54,7 +54,9 @@ pairs(rbdata)
 AD.stat(rbdata)
 }
 \seealso{
-Other X.test.statistics.: \code{\link{CvM.stat}},
-  \code{\link{KSa.stat}}, \code{\link{biKS.stat}}
+Other "test statistics": 
+\code{\link{CvM.stat}()},
+\code{\link{KSa.stat}()},
+\code{\link{biKS.stat}()}
 }
-
+\concept{"test statistics"}

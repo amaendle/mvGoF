@@ -14,4 +14,3 @@ CvM.cval(n, prob)
 \description{
 \code{KS.cval} returns the critical values of for the Cramér-von Mises test statistic.
 }
-

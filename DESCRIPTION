@@ -12,10 +12,13 @@ Description: Functions for the computation of several goodness of fit
 Depends:
     R (>= 3.3.0)
 Imports:
-    copula, MASS
+    copula,
+    doParallel,
+    foreach,
+    MASS
 Suggests:
     gumbel
-License: GPL-3.0
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 5.0.1
+RoxygenNote: 7.3.3

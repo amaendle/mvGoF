@@ -4,15 +4,18 @@
 #'
 #' @section List of public functions:
 #' \itemize{
-#'  \item{"\code{\link{AD.stat}}"}{ Anderson-Darling}
-#'  \item{"\code{\link{CvM.stat}}"}{ Cramér-von Mises}
-#'  \item{"\code{\link{biKS.stat}}"}{ bivariate Kolmogorov-Smirnov}
-#'  \item{"\code{\link{rosenblatt.norm}}"}{ Rosenblatt's transformation for normally distributed data}
+#'  \item \code{\link{AD.stat}}: Anderson-Darling
+#'  \item \code{\link{CvM.stat}}: Cramér-von Mises
+#'  \item \code{\link{biKS.stat}}: bivariate Kolmogorov-Smirnov
+#'  \item \code{\link{rosenblatt.norm}} Rosenblatt's transformation for normally distributed data
 #' }
-#'
-#' @docType package
 #' @name mvGoF
 #' @import copula
+#' @importFrom stats ecdf optim pnorm quantile runif spline
+#' @importFrom utils combn
+#' @importFrom foreach foreach %dopar% getDoParWorkers
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
 #' @examples
 #' # Evaluate percentiles of the distribution by Monte-Carlo simulation
 #' # sampling from independent uniforms 0-1 for F_0 specified completely by H_0
@@ -55,7 +58,7 @@
 #' #t2: mu <- c(3,3), eps <- 0.2
 #' #t3: mu <- c(3,3), eps <- 0.4
 #'
-NULL
+"_PACKAGE"
 
 #' Compute Monte-Carlo simulations of test statistic \code{func}
 #'
@@ -604,16 +607,25 @@ Heaviside1 <- function(x) {
 #' u <- rosenblatt.norm(x, rep(0,2), diag(1,2,2))
 #' plot(u)
 #'
-#' set.seed(5)
-#' library("gumbel")
-#' gdata <- qlnorm(rgumbel(12,alpha=2,dim=5))
-#' pairs(gdata)
-#' sigma2 <- matrix((1/sqrt(2)),nrow=5,ncol=5)-diag(((1/sqrt(2))-1),5)
-#' sigma2
-#' ndata <- qnorm(plnorm(gdata))
-#' pairs(ndata)
-#' rbdata <- rosenblatt.norm(ndata, rep(0,5),sigma2)
-#' pairs(rbdata)
+#' # this example requires the gumbel package:
+#' if (requireNamespace("gumbel", quietly = TRUE)) {
+#'   set.seed(5)
+#'
+#'   library("gumbel")
+#'   gdata <- qlnorm(rgumbel(12,alpha=2,dim=5))
+#'   pairs(gdata)
+#'
+#'   sigma2 <- matrix((1/sqrt(2)),nrow=5,ncol=5)-diag(((1/sqrt(2))-1),5)
+#'   sigma2
+#'
+#'   ndata <- qnorm(plnorm(gdata))
+#'   pairs(ndata)
+#'
+#'   rbdata <- rosenblatt.norm(ndata, rep(0,5),sigma2)
+#'   pairs(rbdata)
+#'
+#'   AD.stat(rbdata)
+#' }
 #' @seealso \code{\link[copula]{rtrafo}} for Rosenblatt's transformation on elliptical and Archimedean copulas.
 #' @export
 rosenblatt.norm <- function(x, Mu, Sigma) {

@@ -2,21 +2,22 @@
 % Please edit documentation in R/mvGOV.R
 \docType{package}
 \name{mvGoF}
-\alias{mvGoF}
 \alias{mvGoF-package}
+\alias{mvGoF}
 \title{mvGoF: A package for computating several multivariate EDF goodness of fit statistics.}
 \description{
-Multivariate versions of the popular EDF statistics by \emph{Cramr-von Mises}, \emph{Anderson-Darling} and \emph{Kolmogorov-Smirnov} are supported.
+Multivariate versions of the popular EDF statistics by \emph{Cramér-von Mises}, \emph{Anderson-Darling} and \emph{Kolmogorov-Smirnov} are supported.
 }
 \section{List of public functions}{
 
 \itemize{
- \item{"\code{\link{AD.stat}}"}{ Anderson-Darling}
- \item{"\code{\link{CvM.stat}}"}{ Cramr-von Mises}
- \item{"\code{\link{biKS.stat}}"}{ bivariate Kolmogorov-Smirnov}
- \item{"\code{\link{rosenblatt.norm}}"}{ Rosenblatt's transformation for normally distributed data}
+ \item \code{\link{AD.stat}}: Anderson-Darling
+ \item \code{\link{CvM.stat}}: Cramér-von Mises
+ \item \code{\link{biKS.stat}}: bivariate Kolmogorov-Smirnov
+ \item \code{\link{rosenblatt.norm}} Rosenblatt's transformation for normally distributed data
 }
 }
+
 \examples{
 # Evaluate percentiles of the distribution by Monte-Carlo simulation
 # sampling from independent uniforms 0-1 for F_0 specified completely by H_0
@@ -60,4 +61,7 @@ for (i in 1:nMC) {
 #t3: mu <- c(3,3), eps <- 0.4
 
 }
+\author{
+\strong{Maintainer}: Andreas Maendle \email{andreas.maendle@uni-oldenburg.de}
 
+}
